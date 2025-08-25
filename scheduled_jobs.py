@@ -269,50 +269,47 @@ async def send_waiver_clear(bot):
             if servers:
                 for server in servers:
                     if "league" in server and "channel" in server:
-                        if functions.is_patron(server):
-                            league_id = server["league"]
-                            league = sleeper_wrapper.League(int(league_id)).get_league()
-                            waiver_day = league["settings"]["waiver_day_of_week"]
-                            today = pendulum.now()
-                            if waiver_day == (today.day_of_week - 1):
-                                try:
-                                    channel = await bot.fetch_channel(
-                                        int(server["channel"])
+                        league_id = server["league"]
+                        league = sleeper_wrapper.League(int(league_id)).get_league()
+                        waiver_day = league["settings"]["waiver_day_of_week"]
+                        today = pendulum.now()
+                        if waiver_day == (today.day_of_week - 1):
+                            try:
+                                channel = await bot.fetch_channel(
+                                    int(server["channel"])
+                                )
+                                rosters = sleeper_wrapper.League(
+                                    int(league_id)
+                                ).get_rosters()
+                                sorted_rosters = sorted(
+                                    rosters,
+                                    key=lambda i: i["settings"]["waiver_position"],
+                                )
+                                waiver_order_string = ""
+                                count = 0
+                                for roster in sorted_rosters:
+                                    count = count + 1
+                                    user = sleeper_wrapper.User(
+                                        roster["owner_id"]
+                                    ).get_user()
+                                    waiver_order_string += (
+                                        f'{str(count)}. {user["display_name"]}\n'
                                     )
-                                    rosters = sleeper_wrapper.League(
-                                        int(league_id)
-                                    ).get_rosters()
-                                    sorted_rosters = sorted(
-                                        rosters,
-                                        key=lambda i: i["settings"]["waiver_position"],
-                                    )
-                                    waiver_order_string = ""
-                                    count = 0
-                                    for roster in sorted_rosters:
-                                        count = count + 1
-                                        user = sleeper_wrapper.User(
-                                            roster["owner_id"]
-                                        ).get_user()
-                                        waiver_order_string += (
-                                            f'{str(count)}. {user["display_name"]}\n'
-                                        )
-                                    embed = functions.my_embed(
-                                        "Waiver Order",
-                                        "Returns the current waiver order for your league.",
-                                        discord.Colour.blue(),
-                                        "Current Waiver Order",
-                                        waiver_order_string,
-                                        False,
-                                        bot,
-                                    )
-                                    await channel.send(
-                                        "Time to check your waiver claims, looks like they cleared last night! Here is a quick look at the current waiver order after the claims went through:"
-                                    )
-                                    await channel.send(embed=embed)
-                                except:
-                                    pass
-                            else:
-                                continue
+                                embed = functions.my_embed(
+                                    "Waiver Order",
+                                    "Returns the current waiver order for your league.",
+                                    discord.Colour.blue(),
+                                    "Current Waiver Order",
+                                    waiver_order_string,
+                                    False,
+                                    bot,
+                                )
+                                await channel.send(
+                                    "Time to check your waiver claims, looks like they cleared last night! Here is a quick look at the current waiver order after the claims went through:"
+                                )
+                                await channel.send(embed=embed)
+                            except:
+                                pass
                         else:
                             continue
                     else:
